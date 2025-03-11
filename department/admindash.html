@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen flex flex-col items-center p-6"
+      style="background: radial-gradient(circle farthest-corner at 10% 20%, rgb(32, 32, 34) 0%, rgb(111, 122, 132) 90%);">
+
+    
+    <!-- Navbar -->
+    <nav class="w-full bg-black text-white py-4 shadow-lg flex justify-between px-8 items-center rounded-lg">
+        <h1 class="text-xl font-bold">Admin Dashboard</h1>
+        <button id="logout" class="bg-red-500 hover:bg-red-700 px-4 py-2 rounded-lg shadow-md">Logout</button>
+    </nav>
+    
+    <!-- Options Selection -->
+    <div class="mt-8 w-3/4 bg-white p-6 rounded-lg shadow-2xl text-center">
+        <h2 class="text-2xl font-semibold mb-4">Choose an action</h2>
+        <button id="addData" class="bg-blue-500 hover:bg-blue-700 text-white px-6 py-3 rounded-lg shadow-lg m-2">Add Research</button>
+        <button id="deleteData" class="bg-red-500 hover:bg-red-700 text-white px-6 py-3 rounded-lg shadow-lg m-2">Delete Research</button>
+    </div>
+    
+    <!-- Add Research Form -->
+    <div id="addForm" class="hidden mt-8 w-3/4 bg-white p-6 rounded-lg shadow-2xl">
+        <h2 class="text-xl font-bold text-center mb-4">Add New Research</h2>
+        <form class="space-y-4">
+            <input type="text" id="title" placeholder="Title" class="w-full p-2 border rounded-lg" required>
+            <input type="text" id="author" placeholder="Author" class="w-full p-2 border rounded-lg" required>
+            <input type="date" id="date" class="w-full p-2 border rounded-lg" required>
+            <input type="text" id="type" placeholder="Type" class="w-full p-2 border rounded-lg" required>
+            <textarea id="abstract" placeholder="Abstract" class="w-full p-2 border rounded-lg" required></textarea>
+            <input type="url" id="link" placeholder="Research Link" class="w-full p-2 border rounded-lg" required>
+            <button type="button" id="submitResearch" class="w-full bg-green-500 hover:bg-green-700 text-white py-3 rounded-lg shadow-lg">Add Research</button>
+        </form>
+    </div>
+    
+    <!-- Delete Research Table -->
+    <div id="deleteForm" class="hidden mt-8 w-3/4 bg-white p-6 rounded-lg shadow-2xl">
+        <h2 class="text-xl font-bold text-center mb-4">Delete Research</h2>
+        <input type="text" id="search" placeholder="Search by Title or Author" class="w-full p-2 border rounded-lg mb-4">
+        <table class="w-full border-collapse">
+            <thead>
+                <tr class="bg-gray-200">
+                    <th class="border p-2">ID</th>
+                    <th class="border p-2">Title</th>
+                    <th class="border p-2">Author</th>
+                    <th class="border p-2">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="researchTable"></tbody>
+        </table>
+    </div>
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (localStorage.getItem("adminAuthenticated") !== "true") {
+                window.location.href = "admin.html";
+            }
+
+            document.getElementById("logout").addEventListener("click", function () {
+                localStorage.removeItem("adminAuthenticated");
+                window.location.href = "admin.html";
+            });
+
+            document.getElementById("addData").addEventListener("click", function () {
+                document.getElementById("addForm").classList.remove("hidden");
+                document.getElementById("deleteForm").classList.add("hidden");
+            });
+            
+            document.getElementById("deleteData").addEventListener("click", function () {
+                document.getElementById("deleteForm").classList.remove("hidden");
+                document.getElementById("addForm").classList.add("hidden");
+                loadResearchData();
+            });
+            
+            document.getElementById("submitResearch").addEventListener("click", function () {
+                let researchData = JSON.parse(localStorage.getItem("researchData")) || [];
+                let newEntry = {
+                    id: researchData.length + 1,
+                    title: document.getElementById("title").value,
+                    author: document.getElementById("author").value,
+                    date: document.getElementById("date").value,
+                    type: document.getElementById("type").value,
+                    abstract: document.getElementById("abstract").value,
+                    link: document.getElementById("link").value
+                };
+                researchData.push(newEntry);
+                localStorage.setItem("researchData", JSON.stringify(researchData));
+                alert("Research entry added successfully!");
+                document.querySelector("form").reset();
+            });
+            
+            function loadResearchData() {
+                let researchData = JSON.parse(localStorage.getItem("researchData")) || [];
+                let researchTable = document.getElementById("researchTable");
+                researchTable.innerHTML = "";
+                researchData.forEach((article, index) => {
+                    let row = `<tr>
+                        <td class='border p-2'>${article.id}</td>
+                        <td class='border p-2'>${article.title}</td>
+                        <td class='border p-2'>${article.author}</td>
+                        <td class='border p-2'><button onclick="deleteResearch(${index})" class='bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-lg'>Delete</button></td>
+                    </tr>`;
+                    researchTable.innerHTML += row;
+                });
+            }
+            
+            window.deleteResearch = function(index) {
+                let researchData = JSON.parse(localStorage.getItem("researchData"));
+                researchData.splice(index, 1);
+                localStorage.setItem("researchData", JSON.stringify(researchData));
+                loadResearchData();
+            }
+        });
+    </script>
+</body>
+</html>
